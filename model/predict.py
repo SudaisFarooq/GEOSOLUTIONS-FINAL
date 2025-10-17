@@ -1,10 +1,12 @@
+import os
 import pandas as pd
 import joblib
 import requests
 from datetime import datetime, timedelta
 
-# Load model once at import
-_model = joblib.load("flood_rf_model_usn.pkl")
+# Load model once
+MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'flood_rf_model_usn.pkl')
+model = joblib.load(MODEL_PATH)
 
 def fetch_rainfall(lat, lon, start, end):
     url = (
@@ -40,7 +42,7 @@ def predict_flood(start_date_str, end_date_str, lat, lon):
     pred_df = df[df["date"].between(start_date, end_date)].copy()
     X = pred_df.drop(columns=["date"])
 
-    pred_probs = _model.predict_proba(X)[:,1] * 100
+    pred_probs = model.predict_proba(X)[:,1] * 100
 
     return {
         "prediction": {
