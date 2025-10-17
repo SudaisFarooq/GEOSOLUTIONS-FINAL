@@ -6,7 +6,7 @@ export default function handler(req, res) {
    }
  
    const pythonPath = path.join('venv', 'bin', 'python'); // adjust if using Windows
-   const scriptPath = path.join('api', 'predict.py');
+   const scriptPath = path.join('model', 'predict.py');
  
    const py = spawn(pythonPath, [scriptPath, startDate, endDate, latitude, longitude]);
  
