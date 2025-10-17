@@ -1,13 +1,16 @@
 import json
-from model.predict import predict_flood
+import os
+from datetime import datetime
+from model.predict import predict_flood  # import your function
 
 def handler(request):
     try:
+        # Parse JSON body
         body = request.json()
         start_date = body.get("startDate")
         end_date = body.get("endDate")
-        latitude = float(body.get("latitude"))
-        longitude = float(body.get("longitude"))
+        latitude = body.get("latitude")
+        longitude = body.get("longitude")
 
         if not all([start_date, end_date, latitude, longitude]):
             return {
@@ -15,6 +18,7 @@ def handler(request):
                 "body": json.dumps({"error": "Missing required fields"})
             }
 
+        # ✅ Call your model function
         result = predict_flood(start_date, end_date, latitude, longitude)
 
         return {

@@ -1,23 +1,12 @@
-import sys
 import json
 import joblib
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
 
-# Arguments: startDate endDate latitude longitude
-start_date_str = sys.argv[1]
-end_date_str = sys.argv[2]
-LAT = float(sys.argv[3])
-LON = float(sys.argv[4])
+# Load trained model once (for performance)
+_model = joblib.load("model/flood_rf_model_usn.pkl")
 
-start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
-
-# Load trained model
-model = joblib.load("flood_rf_model_usn.pkl")
-
-# Fetch rainfall for the location
 def fetch_rainfall(lat, lon, start, end):
     url = (
         f"https://power.larc.nasa.gov/api/temporal/daily/point?"
@@ -35,28 +24,27 @@ def fetch_rainfall(lat, lon, start, end):
     })
     return df
 
-rain_df = fetch_rainfall(LAT, LON, start_date - timedelta(days=14), end_date)
+def predict_flood(start_date_str, end_date_str, lat, lon):
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+    end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
-# Compute lagged/cumulative features
-df = rain_df.copy()
-for lag in [1,2,3,7,14]:
-    df[f"rain_lag_{lag}"] = df["rainfall_mm"].shift(lag)
-for w in [3,7,14]:
-    df[f"rain_sum_{w}"] = df["rainfall_mm"].rolling(window=w, min_periods=1).sum()
-df = df.dropna()
+    rain_df = fetch_rainfall(lat, lon, start_date - timedelta(days=14), end_date)
 
-# Keep only rows for prediction period
-pred_df = df[df["date"].between(start_date, end_date)].copy()
-X = pred_df.drop(columns=["date"])
+    df = rain_df.copy()
+    for lag in [1, 2, 3, 7, 14]:
+        df[f"rain_lag_{lag}"] = df["rainfall_mm"].shift(lag)
+    for w in [3, 7, 14]:
+        df[f"rain_sum_{w}"] = df["rainfall_mm"].rolling(window=w, min_periods=1).sum()
+    df = df.dropna()
 
-# Predict probabilities
-pred_probs = model.predict_proba(X)[:,1] * 100
+    pred_df = df[df["date"].between(start_date, end_date)].copy()
+    X = pred_df.drop(columns=["date"])
 
-output = {
-    "prediction": {
-        "date": pred_df["date"].dt.strftime("%Y-%m-%d").tolist(),
-        "percentage": pred_probs.round(2).tolist()
+    pred_probs = _model.predict_proba(X)[:, 1] * 100
+
+    return {
+        "prediction": {
+            "date": pred_df["date"].dt.strftime("%Y-%m-%d").tolist(),
+            "percentage": pred_probs.round(2).tolist()
+        }
     }
-}
-
-print(json.dumps(output))
