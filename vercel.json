@@ -3,15 +3,23 @@
   "name": "flood-help-app",
   "builds": [
     {
-      "src": "public//*",
+      "src": "public/**/*",
       "use": "@vercel/static"
     },
     {
-      "src": "api//*.js",
+      "src": "api/**/*.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
+    {
+      "src": "/api/(.*)\\.py",
+      "dest": "/api/$1.py"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
