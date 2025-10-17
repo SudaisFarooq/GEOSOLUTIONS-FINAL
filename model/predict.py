@@ -1,11 +1,10 @@
-import json
-import joblib
 import pandas as pd
+import joblib
 import requests
 from datetime import datetime, timedelta
 
-# Load trained model once (for performance)
-_model = joblib.load("model/flood_rf_model_usn.pkl")
+# Load model once at import
+_model = joblib.load("flood_rf_model_usn.pkl")
 
 def fetch_rainfall(lat, lon, start, end):
     url = (
@@ -29,18 +28,19 @@ def predict_flood(start_date_str, end_date_str, lat, lon):
     end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
 
     rain_df = fetch_rainfall(lat, lon, start_date - timedelta(days=14), end_date)
-
     df = rain_df.copy()
-    for lag in [1, 2, 3, 7, 14]:
+
+    # Lag features
+    for lag in [1,2,3,7,14]:
         df[f"rain_lag_{lag}"] = df["rainfall_mm"].shift(lag)
-    for w in [3, 7, 14]:
+    for w in [3,7,14]:
         df[f"rain_sum_{w}"] = df["rainfall_mm"].rolling(window=w, min_periods=1).sum()
     df = df.dropna()
 
     pred_df = df[df["date"].between(start_date, end_date)].copy()
     X = pred_df.drop(columns=["date"])
 
-    pred_probs = _model.predict_proba(X)[:, 1] * 100
+    pred_probs = _model.predict_proba(X)[:,1] * 100
 
     return {
         "prediction": {

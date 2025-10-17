@@ -1,4 +1,6 @@
+Flask
 pandas
-joblib
 requests
+joblib
 scikit-learn
+gunicorn
