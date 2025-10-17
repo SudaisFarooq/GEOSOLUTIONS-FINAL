@@ -1,30 +1,14 @@
-import json
-from model.predict import predict_flood
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-def handler(request):
-    try:
-        body = request.json()
-        start_date = body.get("startDate")
-        end_date = body.get("endDate")
-        latitude = float(body.get("latitude"))
-        longitude = float(body.get("longitude"))
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-        if not all([start_date, end_date, latitude, longitude]):
-            return {
-                "status": 400,
-                "body": json.dumps({"error": "Missing required fields"})
-            }
+export default function handler(req, res) {
+  const filePath = path.join(__dirname, '..', 'public', 'floodPrediction.html');
+  const fileContent = fs.readFileSync(filePath, 'utf8');
 
-        result = predict_flood(start_date, end_date, latitude, longitude)
-
-        return {
-            "status": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(result)
-        }
-
-    except Exception as e:
-        return {
-            "status": 500,
-            "body": json.dumps({"error": str(e)})
-        }
+  res.setHeader('Content-Type', 'text/html');
+  res.status(200).send(fileContent);
+}
