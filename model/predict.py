@@ -5,7 +5,7 @@ import requests
 from datetime import datetime, timedelta
 
 # Load model once
-MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'flood_rf_model_usn.pkl')
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'flood_rf_model_usn.pkl')
 model = joblib.load(MODEL_PATH)
 
 def fetch_rainfall(lat, lon, start, end):
