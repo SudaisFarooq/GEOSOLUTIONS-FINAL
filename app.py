@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, jsonify, render_template 
-from model.predict import predict_flood
+from model.predict import predict_floozd
 
 app = Flask(__name__, static_folder='public', static_url_path='')
 
