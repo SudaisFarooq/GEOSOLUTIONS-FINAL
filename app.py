@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, render_template 
 from model.predict import predict_flood
 
 app = Flask(__name__, static_folder='public', static_url_path='')
@@ -7,12 +7,12 @@ app = Flask(__name__, static_folder='public', static_url_path='')
 # Serve index page
 @app.route('/')
 def index():
-    return send_from_directory('public', 'index.html')
+    return render_template ( 'index.html')
 
 # Serve floodPrediction page
 @app.route('/floodPrediction')
 def flood_prediction_page():
-    return send_from_directory('public', 'floodPrediction.html')
+    return render_template ( 'floodPrediction.html')
 
 # Test route
 @app.route('/test')
